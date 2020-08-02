@@ -407,6 +407,7 @@ def parse_release(release):
                 "barcode", "date", "packaging", "asin"]
     inner_els = {"text-representation": parse_text_representation,
                  "artist-credit": parse_artist_credit,
+                 "alias-list": parse_alias_list,
                  "label-info-list": parse_label_info_list,
                  "medium-list": parse_medium_list,
                  "release-group": parse_release_group,
@@ -477,6 +478,7 @@ def parse_release_group(rg):
     elements = ["title", "user-rating", "first-release-date", "primary-type",
                 "disambiguation"]
     inner_els = {"artist-credit": parse_artist_credit,
+                 "alias-list": parse_alias_list,
                  "release-list": parse_release_list,
                  "tag-list": parse_tag_list,
                  "user-tag-list": parse_tag_list,
