@@ -10,7 +10,7 @@ class ArgumentTest(unittest.TestCase):
 
     def setUp(self):
         self.opener = _common.FakeOpener("<response/>")
-        musicbrainzngs.compat.build_opener = lambda *args: self.opener
+        musicbrainzngs.compat.build_opener = lambda *args: self.opener.add_handlers_and_return(args)
         musicbrainz.set_rate_limit(False)
 
     def tearDown(self):
@@ -33,14 +33,35 @@ class ArgumentTest(unittest.TestCase):
                 "test@example.org")
 
     def test_missing_auth(self):
+        musicbrainz.auth("", "")
+        musicbrainz._useragent = "test"
         self.assertRaises(musicbrainzngs.UsageError,
                 musicbrainz._mb_request, path="foo",
                 auth_required=musicbrainz.AUTH_YES)
 
     def test_missing_useragent(self):
         musicbrainz._useragent = ""
-        self.assertRaises(musicbrainzngs.UsageError,
+        self.assertRaises(musicbrainzngs.musicbrainz.UsageError,
                 musicbrainz._mb_request, path="foo")
+
+    def test_auth_headers(self):
+        musicbrainz._useragent = "test"
+        musicbrainz.auth("user", "password")
+        req = musicbrainz._mb_request(path="foo", auth_required=musicbrainz.AUTH_YES)
+        assert(any([isinstance(handler, musicbrainz._DigestAuthHandler) for handler in self.opener.handlers]))
+
+    def test_auth_headers_ifset(self):
+        musicbrainz._useragent = "test"
+        musicbrainz.auth("user", "password")
+        req = musicbrainz._mb_request(path="foo", auth_required=musicbrainz.AUTH_IFSET)
+        assert(any([isinstance(handler, musicbrainz._DigestAuthHandler) for handler in self.opener.handlers]))
+
+    def test_auth_headers_ifset_no_user(self):
+        musicbrainz._useragent = "test"
+        musicbrainz.auth("", "")
+        # if no user and password, auth is not set for AUTH_IFSET
+        req = musicbrainz._mb_request(path="foo", auth_required=musicbrainz.AUTH_IFSET)
+        assert(not any([isinstance(handler, musicbrainz._DigestAuthHandler) for handler in self.opener.handlers]))
 
 
 class MethodTest(unittest.TestCase):

@@ -29,11 +29,11 @@ LUCENE_SPECIAL = r'([+\-&|!(){}\[\]\^"~*?:\\\/])'
 
 RELATABLE_TYPES = ['area', 'artist', 'label', 'place', 'event', 'recording', 'release', 'release-group', 'series', 'url', 'work', 'instrument']
 RELATION_INCLUDES = [entity + '-rels' for entity in RELATABLE_TYPES]
-TAG_INCLUDES = ["tags", "user-tags"]
+TAG_INCLUDES = ["tags", "user-tags", "genres", "user-genres"]
 RATING_INCLUDES = ["ratings", "user-ratings"]
 
 VALID_INCLUDES = {
-    'area' : ["aliases", "annotation"] + RELATION_INCLUDES,
+    'area' : ["aliases", "annotation"] + RELATION_INCLUDES + TAG_INCLUDES,
     'artist': [
         "recordings", "releases", "release-groups", "works", # Subqueries
         "various-artists", "discids", "media", "isrcs",
@@ -67,7 +67,7 @@ VALID_INCLUDES = {
     ] + TAG_INCLUDES + RATING_INCLUDES + RELATION_INCLUDES,
     'series': [
         "annotation", "aliases"
-    ] + RELATION_INCLUDES,
+    ] + RELATION_INCLUDES + TAG_INCLUDES,
     'work': [
         "aliases", "annotation"
     ] + TAG_INCLUDES + RATING_INCLUDES + RELATION_INCLUDES,
@@ -99,7 +99,7 @@ VALID_RELEASE_TYPES = [
     "nat",
     "album", "single", "ep", "broadcast", "other", # primary types
     "compilation", "soundtrack", "spokenword", "interview", "audiobook",
-    "live", "remix", "dj-mix", "mixtape/street", # secondary types
+    "live", "remix", "dj-mix", "mixtape/street", "audio drama" # secondary types
 ]
 #: These can be used to filter whenever releases or release-groups are involved
 VALID_RELEASE_STATUSES = ["official", "promotion", "bootleg", "pseudo-release"]
@@ -166,6 +166,9 @@ VALID_SEARCH_FIELDS = {
 class AUTH_YES: pass
 class AUTH_NO: pass
 class AUTH_IFSET: pass
+
+
+AUTH_REQUIRED_INCLUDES = ["user-tags", "user-ratings", "user-genres"]
 
 
 # Exceptions.
@@ -691,11 +694,12 @@ def _mb_request(path, method='GET', auth_required=AUTH_NO,
 
     return parser_fun(resp)
 
+
 def _get_auth_type(entity, id, includes):
     """ Some calls require authentication. This returns
-    True if a call does, False otherwise
+    a constant (Yes, No, IfSet) for the auth status of the call.
     """
-    if "user-tags" in includes or "user-ratings" in includes:
+    if "user-tags" in includes or "user-ratings" in includes or "user-genres" in includes:
         return AUTH_YES
     elif entity.startswith("collection"):
         if not id:
@@ -704,6 +708,7 @@ def _get_auth_type(entity, id, includes):
             return AUTH_IFSET
     else:
         return AUTH_NO
+
 
 def _do_mb_query(entity, id, includes=[], params={}):
 	"""Make a single GET call to the MusicBrainz XML API. `entity` is a

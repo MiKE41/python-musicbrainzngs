@@ -101,8 +101,9 @@ def get_image_list(releaseid):
     If an error occurs then a :class:`~musicbrainzngs.ResponseError` will
     be raised with one of the following HTTP codes:
 
-    * 400: `Releaseid` is not a valid UUID
-    * 404: No release exists with an MBID of `releaseid`
+    * 400: `releaseid` is not a valid UUID
+    * 404: The release with an MBID of `releaseid` does not exist or
+           there is no cover art available for it.
     * 503: Ratelimit exceeded
     """
     return _caa_request(releaseid)
@@ -118,8 +119,9 @@ def get_release_group_image_list(releasegroupid):
     If an error occurs then a :class:`~musicbrainzngs.ResponseError` will
     be raised with one of the following HTTP codes:
 
-    * 400: `Releaseid` is not a valid UUID
-    * 404: No release exists with an MBID of `releaseid`
+    * 400: `releasegroupid` is not a valid UUID
+    * 404: The release group with an MBID of `releasegroupid` does not exist or
+           there is no cover art available for it.
     * 503: Ratelimit exceeded
     """
     return _caa_request(releasegroupid, entitytype="release-group")
@@ -160,12 +162,13 @@ def get_image(mbid, coverid, size=None, entitytype="release"):
     If an error occurs then a :class:`~musicbrainzngs.ResponseError`
     will be raised with one of the following HTTP codes:
 
-    * 400: `Releaseid` is not a valid UUID or `coverid` is invalid
-    * 404: No release exists with an MBID of `releaseid`
+    * 400: `releaseid` is not a valid UUID or `coverid` is invalid
+    * 404: The release with an MBID of `releaseid` does not exist or no cover
+           art with an id of `coverid` exists.
     * 503: Ratelimit exceeded
 
-    :param coverid: ``front``, ``back`` or a number from the listing obtained with
-                    :meth:`get_image_list`
+    :param coverid: ``front``, ``back`` or a number from the listing obtained
+                    with :meth:`get_image_list`
     :type coverid: int or str
 
     :param size: "250", "500", "1200" or None. If it is None, the largest
